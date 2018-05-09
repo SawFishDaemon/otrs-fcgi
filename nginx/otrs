@@ -1,14 +1,28 @@
-server {
-	listen *:80;
-	server_name HOSTNAME;
-	root /opt/otrs/var/httpd/htdocs;
-	index index.html;
+worker_processes  1;
 
-	location /otrs-web {
-		gzip on;
-		alias /opt/otrs/var/httpd/htdocs;
-	}
+events {
+    worker_connections  1024;
+}
 
+    server {
+        listen       80;
+        server_name  localhost;
+
+        location / {
+            root   /opt/otrs/var/httpd/htdocs;
+            index  index.html index.htm;
+        }
+
+        location /otrs-web {
+                gzip on;
+                alias /opt/otrs/var/httpd/htdocs;
+        }
+        
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/local/www/nginx-dist;
+	} 
+ 
 	location ~ ^/otrs/(.*\.pl)(/.*)?$ {
 		fastcgi_pass unix:/var/run/otrs/otrs.cgi.sock;
 		fastcgi_index index.pl;
@@ -30,4 +44,5 @@ server {
 		fastcgi_param SERVER_PORT $server_port;
 		fastcgi_param SERVER_NAME $server_name;
 	}
+   }
 }
